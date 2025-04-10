@@ -82,7 +82,7 @@ function Copies() {
             </button>
           </div>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[60vh] overflow-y-auto">
           <table className="w-full text-left">
             <thead>
               <tr className="bg-gray-100 text-gray-600">

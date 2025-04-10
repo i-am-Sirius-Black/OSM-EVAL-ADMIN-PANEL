@@ -384,42 +384,80 @@ app.get('/api/scanning/pdf/:sno', async (req, res) => {
 
 //* with search functionality 
 
+// app.get('/api/scanning', async (req, res) => {
+//     const page = parseInt(req.query.page) || 1;
+//     const limit = parseInt(req.query.limit) || 20;
+//     const offset = (page - 1) * limit;
+//     const bagId = req.query.bagId || '';
+//     const copyBarcode = req.query.copyBarcode || '';
+    
+//     // Build where clause based on provided search parameters
+//     let where = {};
+//     if (bagId) where.BagID = bagId;
+//     if (copyBarcode) {
+//       where.copy_barcode = {
+//         [Op.like]: `%${copyBarcode}%` // Using Sequelize's LIKE operator for partial matches
+//       };
+//     }
+    
+//     try {
+//       const { count, rows } = await Scanning.findAndCountAll({ 
+//         where, 
+//         offset, 
+//         limit,
+//         order: [['scannedAt', 'DESC']] // Add default sorting
+//       });
+      
+//       res.json({ 
+//         data: rows, 
+//         totalPages: Math.ceil(count / limit), 
+//         currentPage: page,
+//         totalRecords: count 
+//       });
+//     } catch (error) {
+//       console.error('Error fetching scan data:', error);
+//       res.status(500).json({ error: 'Failed to fetch scan data' });
+//     }
+//   });
+
+
+//* only these columns instead of all-> 'sno', 'ScanId', 'scannedAt', 'copy_barcode'
+
 app.get('/api/scanning', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
     const offset = (page - 1) * limit;
-    const bagId = req.query.bagId || '';
     const copyBarcode = req.query.copyBarcode || '';
-    
+  
     // Build where clause based on provided search parameters
     let where = {};
-    if (bagId) where.BagID = bagId;
     if (copyBarcode) {
       where.copy_barcode = {
-        [Op.like]: `%${copyBarcode}%` // Using Sequelize's LIKE operator for partial matches
+        [Op.like]: `%${copyBarcode}%` // Partial match
       };
     }
-    
+  
     try {
-      const { count, rows } = await Scanning.findAndCountAll({ 
-        where, 
-        offset, 
+      const { count, rows } = await Scanning.findAndCountAll({
+        where,
+        attributes: ['sno', 'ScanId', 'scannedAt', 'copy_barcode'], // Only select needed columns
+        offset,
         limit,
-        order: [['scannedAt', 'DESC']] // Add default sorting
+        order: [['scannedAt', 'DESC']]
       });
-      
-      res.json({ 
-        data: rows, 
-        totalPages: Math.ceil(count / limit), 
+  
+      res.json({
+        data: rows,
+        totalPages: Math.ceil(count / limit),
         currentPage: page,
-        totalRecords: count 
+        totalRecords: count
       });
     } catch (error) {
       console.error('Error fetching scan data:', error);
       res.status(500).json({ error: 'Failed to fetch scan data' });
     }
   });
-
+  
 
 
 // Start Server

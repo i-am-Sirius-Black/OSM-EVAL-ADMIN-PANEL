@@ -611,7 +611,20 @@ function OsmEval() {
                       <td className="p-4 text-center">
                         <button
                           onClick={() => handleViewPdf(scan.sno)}
-                          className="text-blue-600 hover:text-blue-800"
+                        //   className="text-blue-600 hover:text-blue-800"
+                        className="
+                        p-2 
+                        text-blue-500 
+                        hover:text-blue-700 
+                        hover:bg-red-50 
+                        rounded-full 
+                        transition-all 
+                        duration-200 
+                        transform-gpu     
+                        hover:scale-[1.05] 
+                        hover:-translate-y-px
+                        active:translate-y-0 
+                    "
                           title="Open PDF in new tab"
                         >
                           <FaFilePdf size={20} />

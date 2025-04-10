@@ -74,7 +74,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-// const BaseURL = import.meta.env.VITE_API_URL;
+const BaseURL = import.meta.env.VITE_API_URL;
 
 function Login() {
   const [uid, setUid] = useState('');
@@ -89,7 +89,7 @@ function Login() {
     setError('');
     
     try {
-      const res = await axios.post(`http://172.18.18.221:5000/login`, { uid, pass });
+      const res = await axios.post(`${BaseURL}/login`, { uid, pass });
       if (res.data.success) {
         localStorage.setItem('adminUser', JSON.stringify(res.data.user));
         navigate('/');
