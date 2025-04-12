@@ -258,7 +258,7 @@ function Users() {
           usr_role: "user",
         });
       } else {
-        await axios.post("${BaseURL}/users", form);
+        await axios.post(`${BaseURL}/users`, form);
         fetchUsers(currentPage);
         setForm({
           uid: "",
@@ -287,17 +287,24 @@ function Users() {
     setIsFormOpen(true); // Open the form when editing
   };
 
-  const handleDelete = (sno) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this user? This action cannot be undone."
-      )
-    ) {
-      axios.delete(`${BaseURL}/users/${sno}`).then(() => {
-        fetchUsers(currentPage); // Refresh after deletion
-      });
+  const handleDelete = async (sno) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this user? This action cannot be undone."
+    );
+  
+    if (!confirmDelete) return;
+  
+    try {
+      await axios.delete(`${BaseURL}/users/${sno}`);
+      fetchUsers(currentPage); // Refresh the list
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error(
+        error?.response?.data?.error || "Failed to delete user. Please try again."
+      );
     }
   };
+  
 
   const toggleForm = () => {
     setIsFormOpen(!isFormOpen);
@@ -617,7 +624,7 @@ return (
       </div>
 
       {/* Users Table Card */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      {/* <div className="bg-white p-6 rounded-lg shadow-md">
         <h3 className="text-lg font-semibold mb-4 text-gray-800">Registered Users</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -637,7 +644,7 @@ return (
                 <tr key={user.sno} className="hover:bg-gray-50 border-b">
                   <td className="p-3">{user.sno}</td>
                   <td className="p-3">{user.uid}</td>
-                  <td className="p-3">{user.name}</td>
+                  <td className="p-3 capitalize">{user.name}</td>
                   <td className="p-3 capitalize">{user.usertype}</td>
                   <td className="p-3 capitalize">{user.usr_role}</td>
                   <td className="p-3">
@@ -670,7 +677,6 @@ return (
           </table>
         </div>
         
-        {/* Pagination */}
         <div className="flex justify-between items-center mt-6">
           <button
             onClick={() => fetchUsers(currentPage - 1)}
@@ -697,10 +703,156 @@ return (
             </svg>
           </button>
         </div>
+      </div> */}
+
+<div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      {/* Card Header */}
+      <h3 className="text-lg font-semibold text-gray-900 mb-6">Registered Users</h3>
+
+      {/* Table Section */}
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SNo</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User ID</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User Type</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Active</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {users.length > 0 ? (
+              users.map((user) => (
+                <tr key={user.sno} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.sno}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{user.uid}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 capitalize">{user.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 capitalize">{user.usertype}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 capitalize">{user.usr_role}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      disabled={togglingId === user.sno}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleActive(user);
+                      }}
+                      className={`focus:outline-none ${
+                        togglingId === user.sno ? 'opacity-50' : ''
+                      }`}
+                      aria-label={user.active ? 'Deactivate user' : 'Activate user'}
+                    >
+                      {togglingId === user.sno ? (
+                        <Spinner className="w-6 h-6 text-blue-600" />
+                      ) : user.active ? (
+                        <LiaToggleOnSolid className="text-green-600" size={28} />
+                      ) : (
+                        <LiaToggleOffSolid className="text-red-600" size={28} />
+                      )}
+                    </button>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center space-x-2">
+                      <EditIconButton onClick={() => handleEdit(user)} />
+                      <DeleteIconButton onClick={() => handleDelete(user.sno)} />
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="7" className="p-8 text-center text-gray-600">
+                  No users found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-between mt-6 px-4 py-3 border-t border-gray-200">
+        <div className="flex-1 hidden sm:flex sm:items-center sm:justify-between">
+          <p className="text-sm text-gray-600">
+            Showing page <span className="font-medium">{currentPage}</span> of{' '}
+            <span className="font-medium">{totalPages}</span>
+          </p>
+          <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <button
+              onClick={() => fetchUsers(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`relative inline-flex items-center px-3 py-2 rounded-l-md text-sm font-medium ${
+                currentPage === 1
+                  ? 'text-gray-300 cursor-not-allowed'
+                  : 'text-gray-500 hover:bg-gray-50'
+              } transition-colors`}
+            >
+              <span className="sr-only">Previous</span>
+              ←
+            </button>
+            {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
+              const pageNum = Math.min(Math.max(currentPage - 2, 1) + i, totalPages);
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => fetchUsers(pageNum)}
+                  className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${
+                    currentPage === pageNum
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  } transition-colors`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+            <button
+              onClick={() => fetchUsers(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`relative inline-flex items-center px-3 py-2 rounded-r-md text-sm font-medium ${
+                currentPage === totalPages
+                  ? 'text-gray-300 cursor-not-allowed'
+                  : 'text-gray-500 hover:bg-gray-50'
+              } transition-colors`}
+            >
+              <span className="sr-only">Next</span>
+              →
+            </button>
+          </nav>
+        </div>
+        {/* Mobile Pagination */}
+        <div className="flex flex-1 justify-between sm:hidden">
+          <button
+            onClick={() => fetchUsers(currentPage - 1)}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              currentPage === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-50'
+            } transition-colors`}
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => fetchUsers(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className={`px-4 py-2 rounded-md text-sm font-medium ${
+              currentPage === totalPages ? 'text-gray-700 hover:bg-gray-50' : 'text-gray-300'
+            } transition-colors`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
     </div>
   );
 
 }
 
 export default Users;
+
+
+
+
+

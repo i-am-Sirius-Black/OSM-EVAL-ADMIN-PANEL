@@ -43,6 +43,8 @@ import Users from './components/Users';
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import OsmEval from './components/OsmEval';
+import ScannerStats from './components/ScannerStats';
+import BagProgress from './components/BagProgress';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -58,11 +60,13 @@ function App() {
               <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
               <div className="flex-1 p-6 overflow-y-auto">
                 <Routes>
-                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/" element={<BagProgress />} />
+                  <Route path="/bag-status" element={<Dashboard />} />
                   <Route path="/database" element={<Database />} />
                   <Route path="/copies" element={<Copies />} />
                   <Route path="/users" element={<Users />} />
                   <Route path="/osm-eval" element={<OsmEval />} />
+                  <Route path="/scanner-stats" element={<ScannerStats />} />
                 </Routes>
               </div>
             </div>

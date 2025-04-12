@@ -76,6 +76,8 @@ sequelize.authenticate()
 
 app.post('/api/login', async (req, res) => {
     const { uid, pass } = req.body;
+
+    
     try {
       const user = await UserLogin.findOne({
         where: { uid, pass, usr_role: 'admin', active: true, del: false },
@@ -89,8 +91,6 @@ app.post('/api/login', async (req, res) => {
       res.status(500).json({ success: false, message: err.message });
     }
   });
-
-
 
 // // Bagging (Dashboard)
 // app.get('/api/bagging', async (req, res) => {
@@ -271,6 +271,9 @@ app.get('/api/users', async (req, res) => {
       const offset = (page - 1) * limit;
   
       const { count, rows } = await UserLogin.findAndCountAll({
+        where: {           
+            del: false,
+        },
         offset,
         limit,
       });
@@ -341,6 +344,7 @@ app.put('/api/users/:sno', async (req, res) => {
 
 
 app.delete('/api/users/:sno', async (req, res) => {
+    
   try {
     const user = await UserLogin.findByPk(req.params.sno);
     if (user) {
@@ -457,8 +461,71 @@ app.get('/api/scanning', async (req, res) => {
       res.status(500).json({ error: 'Failed to fetch scan data' });
     }
   });
+
   
 
+// New Scanner Stats Endpoint
+app.get('/api/scanner-stats', async (req, res) => {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 9;
+      const offset = (page - 1) * limit;
+  
+      // Fetch scanners from userlogin
+      const scanners = await UserLogin.findAll({
+        where: { usertype: 'scanner', usr_role:'user', active: true, del: false },
+        attributes: ['uid', 'name'],
+      });
+  
+      // Count scans per scanner
+      const scannerStats = await Promise.all(
+        scanners.map(async (scanner) => {
+          const scanCount = await Scanning.count({
+            where: { ScanId: scanner.uid },
+          });
+          return { uid: scanner.uid, name: scanner.name, scanCount };
+        })
+      );
+  
+      // Sort by scanCount descending
+      scannerStats.sort((a, b) => b.scanCount - a.scanCount);
+  
+      // Apply pagination
+      const paginatedStats = scannerStats.slice(offset, offset + limit);
+  
+      res.json({
+        data: paginatedStats,
+        totalPages: Math.ceil(scannerStats.length / limit),
+        currentPage: page,
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+
+
+
+  // New Bag Stats Endpoint
+app.get('/api/bag-stats', async (req, res) => {
+    try {
+      const totalBags = await Bagging.count();
+      const scanned = await Bagging.count({ where: { IsScanned: true } });
+      const uploaded = await Bagging.count({ where: { IsUploaded: true } });
+      const gunnedNotScanned = await Bagging.count({ where: { IsScanned: false, IsUploaded: false } }); // Assuming "gunned" means exists but not scanned/uploaded
+      
+  
+      res.json({
+        totalBags,
+        scanned,
+        uploaded,
+        gunnedNotScanned,
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
 
 // Start Server
 app.listen(5000, () => console.log('Server running on http://localhost:5000'));
